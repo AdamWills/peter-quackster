@@ -4,24 +4,18 @@ if (!process.env.token) {
 }
 
 const Botkit = require('botkit'),
-      os = require('os');
+      CronJob = require('cron').CronJob,
+      jokes = require('./jokes.js');
 
 const controller = Botkit.slackbot({
     debug: false
 });
 
-const channel = 'bot-tests';
-
 const bot = controller.spawn({
     token: process.env.token
 }).startRTM();
 
-// bot.say({
-//     text: 'QUACK! I\'M ALIVE! QUACK!',
-//     channel: channel
-// });
-
-controller.hears(['hello'],['direct_message','direct_mention','mention'], (bot,message) => {
+controller.hears(['hello', 'good morning'],['direct_message','direct_mention','mention'], (bot,message) => {
   bot.reply(message,'Quack.');
 });
 
@@ -29,59 +23,48 @@ controller.hears(['joke'],['direct_message','direct_mention','mention'], (bot,me
   tellDuckJoke(message);
 });
 
+// Runs Mon, Tues, Thurs, Fri at 9:30:00 AM.
+const standupReminder = new CronJob({
+  cronTime: '00 30 9 * * 1,2,4,5',
+  onTick: function() {
+    bot.say({
+      text: 'QUACK! It\'s time for your standup, folks! QUACK!',
+      channel: 'dev'
+    });
+  },
+  start: false,
+  timeZone: 'America/Toronto'
+});
+standupReminder.start();
+
+// Runs Thurs at 3:59:00 PM.
+const wiretapReminder = new CronJob({
+  cronTime: '00 59 15 * * 4',
+  onTick: function() {
+    bot.say({
+      text: 'QUACK! It\'s time to tap some wires, folks! QUACK!',
+      channel: 'dev'
+    });
+  },
+  start: false,
+  timeZone: 'America/Toronto'
+});
+wiretapReminder.start();
+
 function getRandomResponse(arr) {
   return arr[Math.floor(Math.random()*arr.length)];
 }
 
 function tellDuckJoke(message) {
-  const jokes = [
-    {
-      q: 'At what time does a duck wake up?',
-      a: 'At the quack of dawn!'
-    },
-    {
-      q: 'What do ducks get after they eat?',
-      a: 'A bill!'
-    },
-    {
-      q: 'What do you call a crate full of ducks?',
-      a: 'A box of quackers!'
-    },
-    {
-      q: 'Who stole the soap?',
-      a: 'The robber ducky!'
-    },
-    {
-      q: 'What\'s another name for a clever duck?',
-      a: 'A wise quacker!'
-    },
-    {
-      q: 'What says "Quick, Quick!"?',
-      a: 'A duck with the hiccups!'
-    },
-    {
-      q: 'Why do ducks watch the news?',
-      a: 'For the feather forecast!'
-    },
-    {
-      q: 'What has webbed feet and fangs?',
-      a: 'Count Duckula!'
-    },
-    {
-      q: 'Where did the duck go when he was sick?',
-      a: 'To the Ducktor!'
-    }
-
-  ];
   const acks = [
-    'That sounds fun. Check this one out...',
-    'Sure. I am only around for your amusement anyways...',
-    'Oooh, I heard this one recently from my buddy, Donald Mallardson. It kills...'
-  ];
-  const followUps = [
-    'QUACK! QUACK! QUACK! (duck laughter)'
-  ];
-  const joke = getRandomResponse(jokes),
+          'That sounds fun. Check this one out...',
+          'Sure. I am only around for your amusement anyways...',
+          'Oooh, I heard this one recently from my buddy, Donald Mallardson. It kills...'
+        ],
+        followUps = [
+          'QUACK! QUACK! QUACK! (duck laughter)'
+        ],
+        joke = getRandomResponse(jokes),
         ack = getRandomResponse(acks),
         follow = getRandomResponse(followUps);
 

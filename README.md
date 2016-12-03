@@ -12,3 +12,4 @@ So far, all this guy does is tell some awful jokes.
 
 1. He can respond to someone saying hello to him
 2. He can tell a joke. This can either be done by mentioning him and the word 'joke' (e.g. @peter.quackster - tell me a joke!) or by directly messaging him and mentioning 'joke'.
+3. Sets reminders for daily standups and Wiretaps!
